@@ -13,18 +13,58 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Calculate days until race
-        run: |
-          RACE_DATE="2025-02-16"  # Change this to your race date (YYYY-MM-DD)
-          TODAY=$(date +%Y-%m-%d)
-          DAYS_LEFT=$(( ( $(date -d "$RACE_DATE" +%s) - $(date -d "$TODAY" +%s) ) / 86400 ))
+  run: |
+    # Define your two race dates (YYYY-MM-DD)
+    RACE_DATE1="2025-04-15"  # First race date
+    RACE_DATE2="2025-05-20"  # Second race date
 
-          if [ "$DAYS_LEFT" -lt 0 ]; then
-            MESSAGE="🏁 Race Completed!"
-          else
-            MESSAGE="🏃 $DAYS_LEFT days left!"
-          fi
+    # Get today's date and convert it to epoch seconds
+    TODAY=$(date +%Y-%m-%d)
+    TODAY_SEC=$(date -d "$TODAY" +%s)
 
-          echo "{ \"schemaVersion\": 1, \"label\": \"Race Countdown\", \"message\": \"$MESSAGE\", \"color\": \"blue\" }" > countdown.json
+    # Convert the race dates to epoch seconds
+    RACE1_SEC=$(date -d "$RACE_DATE1" +%s)
+    RACE2_SEC=$(date -d "$RACE_DATE2" +%s)
+
+    # A helper function that returns true if the date (in epoch seconds) is today or in the future
+    is_future_or_today() {
+      [ "$1" -ge "$TODAY_SEC" ]
+    }
+
+    # Determine which race date is upcoming
+    SELECTED_RACE_DATE="none"
+    SELECTED_RACE_SEC=0
+
+    if is_future_or_today $RACE1_SEC && is_future_or_today $RACE2_SEC; then
+      # Both races are today or in the future; choose the one that comes first
+      if [ $RACE1_SEC -le $RACE2_SEC ]; then
+           SELECTED_RACE_DATE=$RACE_DATE1
+           SELECTED_RACE_SEC=$RACE1_SEC
+      else
+           SELECTED_RACE_DATE=$RACE_DATE2
+           SELECTED_RACE_SEC=$RACE2_SEC
+      fi
+    elif is_future_or_today $RACE1_SEC; then
+      SELECTED_RACE_DATE=$RACE_DATE1
+      SELECTED_RACE_SEC=$RACE1_SEC
+    elif is_future_or_today $RACE2_SEC; then
+      SELECTED_RACE_DATE=$RACE_DATE2
+      SELECTED_RACE_SEC=$RACE2_SEC
+    fi
+
+    # Build the badge message based on the selected race date
+    if [ "$SELECTED_RACE_DATE" = "none" ]; then
+       MESSAGE="No upcoming races"
+    else
+       DIFF=$(( (SELECTED_RACE_SEC - TODAY_SEC) / 86400 ))
+       if [ $DIFF -eq 0 ]; then
+             MESSAGE="Race Day!"
+       else
+             MESSAGE="$DIFF days left!"
+       fi
+    fi
+
+    echo "{ \"schemaVersion\": 1, \"label\": \"Race Countdown\", \"message\": \"$MESSAGE\", \"color\": \"blue\" }" > countdown.json
 
       - name: Commit and push changes
         run: |
