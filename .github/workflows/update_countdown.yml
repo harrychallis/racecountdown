@@ -14,7 +14,7 @@ jobs:
 
       - name: Calculate days until race
         run: |
-          RACES=("2025-02-16 13.1 Miles" "2025-03-29 50K")
+          RACES=("2025-02-12 13.1 Miles" "2025-03-29 50K")
           TODAY=$(date +%Y-%m-%d)
           SELECTED_RACE=""
           DAYS_LEFT=99999
