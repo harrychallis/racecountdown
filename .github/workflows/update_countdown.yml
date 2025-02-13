@@ -14,8 +14,8 @@ jobs:
 
       - name: Calculate days until race
         run: |
-          RACE_DATE="2025-02-16"  # Change this to your race date (YYYY-MM-DD)
-          RACE_DISTANCE="5K"      # Change this to your race distance (e.g., "5K", "10K")
+          RACE_DATE="2025-02-10"  # Change this to your race date (YYYY-MM-DD)
+          RACE_DISTANCE="13.1 Miles"      # Change this to your race distance (e.g., "5K", "10K")
           TODAY=$(date +%Y-%m-%d)
           DAYS_LEFT=$(( ( $(date -d "$RACE_DATE" +%s) - $(date -d "$TODAY" +%s) ) / 86400 ))
 
