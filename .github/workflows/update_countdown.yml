@@ -3,7 +3,7 @@ name: Update Race Countdown
 on:
   schedule:
     - cron: "0 0 * * *"  # Runs every day at midnight UTC
-  workflow_dispatch:  # Allows manual trigger
+  workflow_dispatch:  # Allows manual trigger if needed
 
 jobs:
   update-countdown:
@@ -14,54 +14,14 @@ jobs:
 
       - name: Calculate days until race
         run: |
-          # Define your two race dates (YYYY-MM-DD)
-          RACE_DATE1="2025-02-16"  # First race date
-          RACE_DATE2="2025-03-29"  # Second race date
-
-          # Get today's date and convert it to epoch seconds
+          RACE_DATE="2025-02-16"  # Change this to your race date (YYYY-MM-DD)
           TODAY=$(date +%Y-%m-%d)
-          TODAY_SEC=$(date -d "$TODAY" +%s)
+          DAYS_LEFT=$(( ( $(date -d "$RACE_DATE" +%s) - $(date -d "$TODAY" +%s) ) / 86400 ))
 
-          # Convert the race dates to epoch seconds
-          RACE1_SEC=$(date -d "$RACE_DATE1" +%s)
-          RACE2_SEC=$(date -d "$RACE_DATE2" +%s)
-
-          # A helper function that returns true if the date (in epoch seconds) is today or in the future
-          is_future_or_today() {
-            [ "$1" -ge "$TODAY_SEC" ]
-          }
-
-          # Determine which race date is upcoming
-          SELECTED_RACE_DATE="none"
-          SELECTED_RACE_SEC=0
-
-          if is_future_or_today $RACE1_SEC && is_future_or_today $RACE2_SEC; then
-            # Both races are today or in the future; choose the one that comes first
-            if [ $RACE1_SEC -le $RACE2_SEC ]; then
-              SELECTED_RACE_DATE=$RACE_DATE1
-              SELECTED_RACE_SEC=$RACE1_SEC
-            else
-              SELECTED_RACE_DATE=$RACE_DATE2
-              SELECTED_RACE_SEC=$RACE2_SEC
-            fi
-          elif is_future_or_today $RACE1_SEC; then
-            SELECTED_RACE_DATE=$RACE_DATE1
-            SELECTED_RACE_SEC=$RACE1_SEC
-          elif is_future_or_today $RACE2_SEC; then
-            SELECTED_RACE_DATE=$RACE_DATE2
-            SELECTED_RACE_SEC=$RACE2_SEC
-          fi
-
-          # Build the badge message based on the selected race date
-          if [ "$SELECTED_RACE_DATE" = "none" ]; then
-            MESSAGE="No upcoming races"
+          if [ "$DAYS_LEFT" -lt 0 ]; then
+            MESSAGE="🏁 Race Completed!"
           else
-            DIFF=$(( (SELECTED_RACE_SEC - TODAY_SEC) / 86400 ))
-            if [ $DIFF -eq 0 ]; then
-              MESSAGE="Race Day!"
-            else
-              MESSAGE="$DIFF days left!"
-            fi
+            MESSAGE="🏃 $DAYS_LEFT days left!"
           fi
 
           echo "{ \"schemaVersion\": 1, \"label\": \"Race Countdown\", \"message\": \"$MESSAGE\", \"color\": \"blue\" }" > countdown.json
@@ -72,4 +32,5 @@ jobs:
           git config --global user.email "github-actions@github.com"
           git add countdown.json
           git commit -m "Updated race countdown" || exit 0
-          git push https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
+
