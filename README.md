@@ -6,7 +6,9 @@ This repository tracks upcoming races and displays a countdown to the next event
 
 Here’s the countdown to your next race, including the race distance:
 
-https://raw.githubusercontent.com/harrychallis/racecountdown/main/countdown.json
+<a href="https://github.com/harrychallis/racecountdown">
+  <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fharrychallis%2Fracecountdown%2Fmain%2Fcountdown.json&style=for-the-badge&logo=running&logoColor=white" alt="Race Countdown" />
+</a>
 
 ### How It Works
 - The countdown automatically updates every day, showing the number of days left until the race.
