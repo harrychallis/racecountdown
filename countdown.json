@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
   "label": "Race Countdown",
-  "message": "XX days left",  // This will be dynamically updated by your GitHub Action
+  "message": "XX days left", 
   "color": "blue"
 }
