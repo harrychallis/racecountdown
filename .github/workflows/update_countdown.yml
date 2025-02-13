@@ -14,23 +14,26 @@ jobs:
 
       - name: Calculate days until race
         run: |
-          RACE_DATE="2025-02-16"  # Change this to your race date (YYYY-MM-DD)
-          RACE_DISTANCE="13.1 Miles" # Change this to your race distance (e.g., "5K", "10K")
+          RACES=("2025-02-16 13.1 Miles" "2025-03-29 50K")
           TODAY=$(date +%Y-%m-%d)
-          DAYS_LEFT=$(( ( $(date -d "$RACE_DATE" +%s) - $(date -d "$TODAY" +%s) ) / 86400 ))
+          SELECTED_RACE=""
+          DAYS_LEFT=99999
+
+          for RACE in "${RACES[@]}"; do
+            RACE_DATE=${RACE%% *}
+            RACE_DISTANCE=${RACE#* }
+            CURRENT_DAYS_LEFT=$(( ( $(date -d "$RACE_DATE" +%s) - $(date -d "$TODAY" +%s) ) / 86400 ))
+
+            if [ "$CURRENT_DAYS_LEFT" -ge 0 ] && [ "$CURRENT_DAYS_LEFT" -lt "$DAYS_LEFT" ]; then
+              DAYS_LEFT=$CURRENT_DAYS_LEFT
+              SELECTED_RACE=$RACE
+            fi
+          done
 
           if [ "$DAYS_LEFT" -lt 0 ]; then
-            MESSAGE="🏁 Race Completed! ($RACE_DISTANCE)"
+            MESSAGE="🏁 Race Completed! (${SELECTED_RACE#* })"
           else
-            MESSAGE="🏃 $DAYS_LEFT days left! ($RACE_DISTANCE)"
+            MESSAGE="🏃 $DAYS_LEFT days left! (${SELECTED_RACE#* })"
           fi
 
           echo "{ \"schemaVersion\": 1, \"label\": \"Race Countdown\", \"message\": \"$MESSAGE\", \"color\": \"blue\" }" > countdown.json
-
-      - name: Commit and push changes
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-          git add countdown.json
-          git commit -m "Updated race countdown" || exit 0
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
