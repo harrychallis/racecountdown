@@ -1,0 +1,35 @@
+name: Update Race Countdown
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # Runs every day at midnight UTC
+  workflow_dispatch:  # Allows manual trigger if needed
+
+jobs:
+  update-countdown:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Calculate days until race
+        run: |
+          RACE_DATE="2025-02-16"  # Change this to your race date (YYYY-MM-DD)
+          TODAY=$(date +%Y-%m-%d)
+          DAYS_LEFT=$(( ( $(date -d "$RACE_DATE" +%s) - $(date -d "$TODAY" +%s) ) / 86400 ))
+
+          if [ "$DAYS_LEFT" -lt 0 ]; then
+            MESSAGE="🏁 Race Completed!"
+          else
+            MESSAGE="🏃 $DAYS_LEFT days left!"
+          fi
+
+          echo "{ \"schemaVersion\": 1, \"label\": \"Race Countdown\", \"message\": \"$MESSAGE\", \"color\": \"blue\" }" > countdown.json
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add countdown.json
+          git commit -m "Updated race countdown" || exit 0
+          git push
